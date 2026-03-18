@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repl-calcy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: repl-calcy
+  template:
+    metadata:
+      labels:
+        app: repl-calcy
+    spec:
+      containers:
+        - name: repl-calcy
+          image: repl-calcy
+          imagePullPolicy: Never
+          stdin: true # This is because we need user's input in our app
+          tty: true # This is because we need user's input in our app. TTY stands for TeleType. It essentially tells the container to act like it is connected to a real terminal screen and keyboard, rather than just being a silent background process.
+          ports:
+            - containerPort: 3000
+
+# 🟢 Step 1: Build your Docker image
+# docker build -t my-node-app .
+
+# 🟢 Step 2: Enable Kubernetes in Docker Desktop
+# In Docker Desktop:
+# 1. Go to Settings
+# 2. Click Kubernetes
+# 3. Enable it
+
+# 🟢 Step 3: Create Kubernetes Deployment file
+# It is this file.
+
+# 🟢 Step 4: Apply deployment
+# kubectl apply -f deployment.yml
+
+# 🟢 Step 5: Verify Pods
+# Either you can see this in the Kubernetes tab of Docker Desktop, or give this command in your terminal.
+# kubectl get pods
+
+# 🟢 Step 6: Expose your app (Service)
+# kubectl expose deployment repl-calcy --type=NodePort --port=3000
+# Sample Output:
+# service/repl-calcy exposed
+
+# 🟢 Step 7: Get access port
+# kubectl get services
+# Sample Output:
+# PORT(S): 3000:31234/TCP
+
+# 🟢 Step 8a: If your application is web-based (like a website), open it in a web-browser:
+# http://localhost:31234
+
+# 🟢 Step 8b: If your application is terminal-based, open it in a terminal:
+# http://localhost:31234
+
+# 1. Find your Pod name:
+# kubectl get pods
+
+# 2. Attach to the Pod:
+# kubectl attach repl-calcy-59495dd8bc-j8hrm -c repl-calcy -i -t
+
+# attach: Instead of starting a new process (like exec does), this connects your terminal directly to the primary process (PID 1) already running in the container.
+
+# repl-calcy-59495dd8bc-j8hrm: This is the unique ID of the specific Pod you are targeting.
+
+# -c repl-calcy: This specifies the container name. If a pod has multiple containers, you have to tell Kubernetes which one you want to "talk" to.
+
+# -i (interactive): This keeps stdin open. Without this, you could see what the app prints, but you couldn't type 3-2 into it.
+
+# -t (TTY): This tells the container to continue behaving like a terminal. This is the part that prevents the "Unable to use a TTY" error. -t or TTY stands for TeleType.
+
+# 3. Use your application:
+# Now you can type expressions like 2+2 and see the result.
