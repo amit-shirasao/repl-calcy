@@ -13,8 +13,8 @@ spec:
         app: repl-calcy-app
     spec:
       containers:
-        - name: repl-calcy-container-name
-          image: repl-calcy-image-name
+        - name: repl-calcy-container
+          image: repl-calcy-image
           imagePullPolicy: Never
           stdin: true
           tty: true
