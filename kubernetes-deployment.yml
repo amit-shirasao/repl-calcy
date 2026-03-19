@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repl-calcy-kubernetes-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: repl-calcy-app
+  template:
+    metadata:
+      labels:
+        app: repl-calcy-app
+    spec:
+      containers:
+        - name: repl-calcy-container-name
+          image: repl-calcy-image-name
+          imagePullPolicy: Never
+          stdin: true
+          tty: true
+          ports:
+            - containerPort: 3000

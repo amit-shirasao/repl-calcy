@@ -13,10 +13,10 @@ const ask = () => {
     }
 
     try {
-        const result = new Function(`return ${input}`)();
-        console.log("Result: " + result);
+      const result = new Function(`return ${input}`)();
+      console.log("Result: " + result);
     } catch (error) {
-        console.log('Invalid expression.')
+      console.log("Invalid expression.");
     }
     ask();
   });
