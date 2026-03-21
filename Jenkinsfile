@@ -2,6 +2,7 @@ pipeline {
   // Use a Kubernetes pod as the build agent
   agent {
     kubernetes {
+      cloud 'k3s'
       yaml '''
         apiVersion: v1
         kind: Pod
@@ -41,11 +42,6 @@ pipeline {
         checkout scm
       }
     }
-
-    /* NOTE: In K8s, building images usually requires a tool like Kaniko 
-       or a remote Docker daemon. For now, we assume your nodes have 
-       access to the image or you are using a registry.
-    */
 
     stage('Deploy Green (Testing)') {
       steps {
@@ -87,7 +83,7 @@ pipeline {
       echo 'Deployment successful! Traffic shifted to Green.'
     }
     failure {
-      echo 'Pipeline failed. Check Kubernetes logs.'
+      echo 'Deployment failed. Check logs.'
     }
   }
 }
