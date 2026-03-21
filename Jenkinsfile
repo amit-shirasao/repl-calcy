@@ -20,8 +20,8 @@ pipeline {
   }
 
   options {
-    disableConcurrentBuilds(abortPrevious: true) [cite: 2]
-    skipDefaultCheckout(true) [cite: 2]
+    disableConcurrentBuilds(abortPrevious: true)
+    skipDefaultCheckout(true)
   }
 
   environment {
@@ -32,13 +32,13 @@ pipeline {
   stages {
     stage('Clean') {
       steps {
-        cleanWs(disableDeferredWipeout: true) [cite: 2]
+        cleanWs(disableDeferredWipeout: true) 
       }
     }
 
     stage('Checkout') {
       steps {
-        checkout scm [cite: 3]
+        checkout scm
       }
     }
 
@@ -65,7 +65,7 @@ pipeline {
       steps {
         container('node') {
           script {
-            // Test against the green deployment [cite: 7]
+            // Test against the green deployment
             sh 'echo "exit" | node index.js' 
           }
         }
@@ -84,10 +84,10 @@ pipeline {
 
   post {
     success {
-      echo 'Deployment successful! Traffic shifted to Green.' [cite: 8]
+      echo 'Deployment successful! Traffic shifted to Green.'
     }
     failure {
-      echo 'Pipeline failed. Check Kubernetes logs.' [cite: 9]
+      echo 'Pipeline failed. Check Kubernetes logs.'
     }
   }
 }
