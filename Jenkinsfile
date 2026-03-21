@@ -1,81 +1,93 @@
 pipeline {
-  agent any
-
-  options {
-    disableConcurrentBuilds(abortPrevious: true)
-    skipDefaultCheckout(true)
+  // Use a Kubernetes pod as the build agent
+  agent {
+    kubernetes {
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+          - name: node
+            image: node:18
+            command: ["sleep"]
+            args: ["infinity"]
+          - name: kubectl
+            image: bitnami/kubectl:latest
+            command: ["sleep"]
+            args: ["infinity"]
+      '''
+    }
   }
 
-  tools {
-    nodejs 'NodeJS 24.8.0'
+  options {
+    disableConcurrentBuilds(abortPrevious: true) [cite: 2]
+    skipDefaultCheckout(true) [cite: 2]
   }
 
   environment {
-    IMAGE_NAME = "calculator-repl-image"
-    CONTAINER_NAME = "calculator-repl-container"
+    IMAGE_NAME = "repl-calcy-image:green" // Matches your k8s.yml green version
+    APP_NAME   = "repl-calcy-app"
   }
 
   stages {
-
     stage('Clean') {
       steps {
-        cleanWs(disableDeferredWipeout: true)
+        cleanWs(disableDeferredWipeout: true) [cite: 2]
       }
     }
 
     stage('Checkout') {
       steps {
-        checkout scm
+        checkout scm [cite: 3]
       }
     }
 
-    stage('Build Docker Image') {
-      steps {
-        script {
-          sh "docker build -t ${IMAGE_NAME} ."
-        }
-      }
-    }
+    /* NOTE: In K8s, building images usually requires a tool like Kaniko 
+       or a remote Docker daemon. For now, we assume your nodes have 
+       access to the image or you are using a registry.
+    */
 
-    stage('Stop Old Container') {
+    stage('Deploy Green (Testing)') {
       steps {
-        script {
-          sh """
-          docker stop ${CONTAINER_NAME} || true
-          docker rm ${CONTAINER_NAME} || true
-          """
-        }
-      }
-    }
-
-    stage('Deploy Container') {
-      steps {
-        script {
-          sh """
-          docker run -d \
-            --name ${CONTAINER_NAME} \
-            ${IMAGE_NAME}
-          """
+        container('kubectl') {
+          script {
+            // Apply the k8s manifest to update/create the Green deployment
+            sh "kubectl apply -f k8s.yml"
+            
+            // Wait for Green pods to be ready
+            sh "kubectl rollout status deployment/repl-calcy-green"
+          }
         }
       }
     }
 
     stage('Smoke Test') {
       steps {
-        script {
-          sh 'echo "exit" | docker exec -i my-node-app-container node index.js || true'
+        container('node') {
+          script {
+            // Test against the green deployment [cite: 7]
+            sh 'echo "exit" | node index.js' 
+          }
         }
       }
     }
 
+    stage('Switch Traffic to Green') {
+      steps {
+        container('kubectl') {
+          // Updates the Service selector to point to 'version: green'
+          sh "kubectl patch service repl-calcy-service -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'"
+        }
+      }
+    }
   }
 
   post {
     success {
-      echo 'Deployment successful! Docker container is running.'
+      echo 'Deployment successful! Traffic shifted to Green.' [cite: 8]
     }
     failure {
-      echo 'Pipeline failed. Check the logs for errors.'
+      echo 'Pipeline failed. Check Kubernetes logs.' [cite: 9]
     }
   }
 }

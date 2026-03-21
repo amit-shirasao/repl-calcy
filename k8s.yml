@@ -1,0 +1,73 @@
+# -------------------------------------------------------------------------
+# BLUE DEPLOYMENT (Current Production)
+# -------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repl-calcy-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: repl-calcy-app
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: repl-calcy-app
+        version: blue
+    spec:
+      containers:
+        - name: repl-calcy-container
+          image: repl-calcy-image:blue # Pointing to the stable version
+          imagePullPolicy: Never
+          stdin: true
+          tty: true
+          ports:
+            - containerPort: 3000
+---
+# -------------------------------------------------------------------------
+# GREEN DEPLOYMENT (New Version to be tested)
+# -------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repl-calcy-green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: repl-calcy-app
+      version: green
+  template:
+    metadata:
+      labels:
+        app: repl-calcy-app
+        version: green
+    spec:
+      containers:
+        - name: repl-calcy-container
+          image: repl-calcy-image:green # Pointing to the new version
+          imagePullPolicy: Never
+          stdin: true
+          tty: true
+          ports:
+            - containerPort: 3000
+---
+# -------------------------------------------------------------------------
+# SERVICE (The Router)
+# Update 'version' in the selector to switch traffic between Blue and Green.
+# -------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: repl-calcy-service
+spec:
+  type: NodePort # Or ClusterIP/LoadBalancer depending on your setup
+  selector:
+    app: repl-calcy-app
+    version: green # Change this to 'green' to perform the cut-over
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000

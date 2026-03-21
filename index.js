@@ -14,7 +14,7 @@ const ask = () => {
 
     try {
       const result = new Function(`return ${input}`)();
-      console.log("Result: " + result);
+      console.log("Green Result: " + result);
     } catch (error) {
       console.log("Invalid expression.");
     }
